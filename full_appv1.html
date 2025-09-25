@@ -4,11 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Three-Page App</title>
+    <!-- Add this tag for the home screen app icon (for iOS) -->
+    <link rel="apple-touch-icon" href="logo.png">
+    <!-- Add this tag for the favicon/app icon (for Android and web) -->
+    <link rel="icon" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #F8FAFC; /* light gray background */
+        }
+        /* Custom styles for the toggle button */
+        .toggle-container {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            background-color: #E5E7EB; /* gray-200 */
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .toggle-indicator {
+            position: absolute;
+            left: 5px;
+            width: calc(50% - 5px);
+            height: 40px;
+            background-color: #EF4444; /* red-500 */
+            border-radius: 9999px;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1;
+        }
+
+        .toggle-indicator.right {
+            transform: translateX(calc(100% + 5px));
+        }
+
+        .toggle-text {
+            position: relative;
+            z-index: 2;
+            width: 50%;
+            text-align: center;
+            font-weight: bold;
+            color: #6B7280; /* gray-500 */
+            transition: color 0.3s ease-in-out;
+        }
+        
+        .toggle-text.active {
+            color: white;
         }
     </style>
 </head>
@@ -19,9 +66,9 @@
         
         <!-- Page 1: Home Page -->
         <div id="page-1" class="page">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Neilwhooo</h1>
-            <p class="text-gray-600 mb-8 text-center">Choose a button to navigate to a new page.</p>
-
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">OPTI QLO</h1>
+            <p class="text-gray-600 mb-8 text-center">Bank Mandiri 1250015371636</p>
+            
             <div class="space-y-4">
                 <button onclick="showPage('page-2')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 shadow-lg">
                     Sunglasses
@@ -29,8 +76,8 @@
                 <button onclick="showPage('page-3')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 shadow-lg">
                     Frame 
                 </button>
-                <button onclick="showPage('page-4')" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 shadow-lg">
-                    Button 3
+                <button id="checkout-btn" onclick="showCheckout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 shadow-lg">
+                    Checkout
                 </button>
             </div>
         </div>
@@ -48,7 +95,7 @@
 
                 <!-- Float Field with Rp symbol -->
                 <div>
-                    <label for="float-field" class="block text-sm font-medium text-gray-700 mb-1">Total Price</label>
+                    <label for="float-field" class="block text-sm font-medium text-gray-700 mb-1">Total</label>
                     <div class="relative rounded-lg shadow-sm">
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <span class="text-gray-500 sm:text-sm">Rp</span>
@@ -67,7 +114,7 @@
             <div class="mt-8 space-y-4">
                 <!-- Confirm Button -->
                 <button id="sunglasses-confirm-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 shadow-lg opacity-50 cursor-not-allowed" disabled>
-                    Confirm
+                    Add to Cart
                 </button>
 
                 <!-- Go Back Button -->
@@ -145,7 +192,7 @@
             <div class="mt-8 space-y-4">
                 <!-- Confirm Button -->
                 <button id="frame-confirm-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 shadow-lg opacity-50 cursor-not-allowed" disabled>
-                    Confirm
+                    Add to Cart
                 </button>
 
                 <!-- Go Back Button -->
@@ -155,45 +202,128 @@
             </div>
         </div>
 
-        <!-- Page 4 -->
+        <!-- Page 4: Checkout Page -->
         <div id="page-4" class="page hidden">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Page 3</h1>
-            <p class="text-gray-600 mb-8 text-center">This is the content for Page 3.</p>
-            <button onclick="showPage('page-1')" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 shadow-lg">
-                Go Back
-            </button>
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Checkout</h1>
+            
+            <!-- Order Summary -->
+            <div id="order-summary" class="space-y-4 mb-6">
+                <!-- Items will be dynamically added here -->
+            </div>
+
+            <!-- Total Payment -->
+            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl shadow-inner mb-6">
+                <span class="font-semibold text-gray-700">Total Payment:</span>
+                <span id="total-payment-display" class="font-bold text-lg text-red-600">Rp0,000</span>
+            </div>
+
+            <!-- Payment Method Toggle -->
+            <div class="space-y-4 mb-8">
+                <label for="payment-toggle" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                <div id="payment-toggle" class="toggle-container" onclick="togglePaymentMethod()">
+                    <div id="toggle-indicator" class="toggle-indicator"></div>
+                    <span id="cash-text" class="toggle-text active">Cash</span>
+                    <span id="trf-text" class="toggle-text">TRF</span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Confirm Checkout Button -->
+                <button id="checkout-confirm-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 shadow-lg">
+                    Confirm Checkout
+                </button>
+                
+                <!-- Go Back Button -->
+                <button onclick="showPage('page-1')" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-full transition-colors duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 shadow-lg">
+                    Go Back
+                </button>
+            </div>
         </div>
 
     </div>
 
     <script>
+        let cart = [];
+        let paymentMethod = 'Cash'; // Default payment method
+
+        // This function is now in the global scope
+        const formatNumber = (number) => {
+            const num = parseFloat(number);
+            if (isNaN(num)) return '0,000';
+            return new Intl.NumberFormat('id-ID', {
+                style: 'decimal',
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3,
+                useGrouping: true
+            }).format(num);
+        };
+
         function showPage(pageId) {
-            // Hide all pages
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => {
                 page.classList.add('hidden');
             });
-            
-            // Show the requested page
             const selectedPage = document.getElementById(pageId);
             if (selectedPage) {
                 selectedPage.classList.remove('hidden');
             }
         }
+        
+        function togglePaymentMethod() {
+            const indicator = document.getElementById('toggle-indicator');
+            const cashText = document.getElementById('cash-text');
+            const trfText = document.getElementById('trf-text');
+            
+            if (paymentMethod === 'Cash') {
+                paymentMethod = 'TRF';
+                indicator.classList.add('right');
+                cashText.classList.remove('active');
+                trfText.classList.add('active');
+            } else {
+                paymentMethod = 'Cash';
+                indicator.classList.remove('right');
+                cashText.classList.add('active');
+                trfText.classList.remove('active');
+            }
+        }
 
-        // JavaScript for the form pages
+        function showCheckout() {
+            const orderSummaryDiv = document.getElementById('order-summary');
+            const totalPaymentDisplay = document.getElementById('total-payment-display');
+            let total = 0;
+            
+            orderSummaryDiv.innerHTML = '';
+            
+            if (cart.length === 0) {
+                orderSummaryDiv.innerHTML = '<p class="text-center text-gray-500">Your cart is empty.</p>';
+                totalPaymentDisplay.textContent = 'Rp0,000';
+            } else {
+                cart.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.classList.add('bg-gray-50', 'p-4', 'rounded-xl', 'shadow-sm', 'border', 'border-gray-200');
+                    let details = '';
+                    if (item.type === 'Sunglasses') {
+                        details = `<p class="font-semibold text-gray-800">${item.text}</p>
+                                   <p class="text-gray-600">Total: Rp${formatNumber(item.total)}</p>`;
+                        total += parseFloat(item.total);
+                    } else if (item.type === 'Frame') {
+                        details = `<p class="font-semibold text-gray-800">Product Type: ${item.productType}</p>
+                                   <p class="text-gray-600">Lense Type: ${item.lenseType}</p>
+                                   <p class="text-gray-600">Paset: Rp${formatNumber(item.paset)}</p>
+                                   <p class="text-gray-600">Lense Price: Rp${formatNumber(item.lensePrice)}</p>
+                                   <p class="text-gray-600">Total Price: Rp${formatNumber(item.total)}</p>`;
+                        total += parseFloat(item.total);
+                    }
+                    itemDiv.innerHTML = details;
+                    orderSummaryDiv.appendChild(itemDiv);
+                });
+                totalPaymentDisplay.textContent = `Rp${formatNumber(total)}`;
+            }
+
+            showPage('page-4');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Function to format a number with thousands separator and three decimal places
-            const formatNumber = (number) => {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'decimal',
-                    minimumFractionDigits: 3,
-                    maximumFractionDigits: 3,
-                    useGrouping: true
-                }).format(number);
-            };
-
-            // ----- Sunglasses Page Logic -----
             const sunglassesTextField = document.getElementById('sunglasses-text-field');
             const sunglassesFloatField = document.getElementById('sunglasses-float-field');
             const sunglassesConfirmBtn = document.getElementById('sunglasses-confirm-btn');
@@ -210,7 +340,11 @@
                 }
             };
             sunglassesTextField.addEventListener('input', toggleSunglassesConfirmButton);
-            sunglassesFloatField.addEventListener('input', toggleSunglassesConfirmButton);
+            sunglassesFloatField.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/[^0-9,.]/g, '');
+                e.target.value = value;
+                toggleSunglassesConfirmButton();
+            });
             sunglassesFloatField.addEventListener('blur', (e) => {
                 const floatValue = parseFloat(e.target.value.replace(/\./g, '').replace(',', '.'));
                 if (!isNaN(floatValue)) {
@@ -218,26 +352,23 @@
                 }
             });
             sunglassesConfirmBtn.addEventListener('click', () => {
-                const invoiceNumber = Math.floor(10000 + Math.random() * 90000);
                 const textValue = sunglassesTextField.value;
                 const floatValue = sunglassesFloatField.value.replace(/\./g, '').replace(',', '.');
-                const formattedFloat = formatNumber(floatValue);
-                const imageStatus = sunglassesImageField.files.length > 0 ? 'Image Uploaded' : 'No Image Uploaded';
-                const message = `Invoice #${invoiceNumber} | ${textValue} | Rp${formattedFloat} | ${imageStatus}`;
-                const encodedMessage = encodeURIComponent(message);
-                const phoneNumber = '+6287880000981'; 
-                const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-                window.open(whatsappUrl, '_blank');
-                setTimeout(() => {
-                    sunglassesTextField.value = '';
-                    sunglassesFloatField.value = '';
-                    sunglassesImageField.value = '';
-                    toggleSunglassesConfirmButton();
-                    showPage('page-1');
-                }, 500);
+                
+                cart.push({
+                    type: 'Sunglasses',
+                    text: textValue,
+                    total: floatValue,
+                });
+                
+                alert("Item added to cart!");
+                sunglassesTextField.value = '';
+                sunglassesFloatField.value = '';
+                sunglassesImageField.value = '';
+                toggleSunglassesConfirmButton();
+                showPage('page-1');
             });
 
-            // ----- Frame Page Logic -----
             const productTypeField = document.getElementById('product-type-field');
             const pasetField = document.getElementById('paset-field');
             const lensePriceField = document.getElementById('lense-price-field');
@@ -260,16 +391,13 @@
                 }
             };
 
-            // Common formatting and event listeners for all float fields on the frame page
             [pasetField, lensePriceField, totalPriceField].forEach(field => {
                 field.addEventListener('input', (e) => {
-                    // Only format on input for cleaner user experience
                     let value = e.target.value.replace(/[^0-9,.]/g, '');
                     e.target.value = value;
                     toggleFrameConfirmButton();
                 });
                 field.addEventListener('blur', (e) => {
-                    // Apply full formatting on blur
                     const numberValue = parseFloat(e.target.value.replace(/\./g, '').replace(',', '.'));
                     if (!isNaN(numberValue)) {
                         e.target.value = formatNumber(numberValue);
@@ -277,38 +405,69 @@
                 });
             });
 
-            // Listen for input on the required fields
             productTypeField.addEventListener('input', toggleFrameConfirmButton);
             lenseTypeField.addEventListener('change', toggleFrameConfirmButton); 
 
-            // Handle the confirm button click for the Frame page
             frameConfirmBtn.addEventListener('click', () => {
-                const invoiceNumber = Math.floor(10000 + Math.random() * 90000);
                 const productType = productTypeField.value;
                 const lenseType = lenseTypeField.value;
                 const paset = pasetField.value.replace(/\./g, '').replace(',', '.');
                 const lensePrice = lensePriceField.value.replace(/\./g, '').replace(',', '.');
                 const totalPrice = totalPriceField.value.replace(/\./g, '').replace(',', '.');
+                
+                cart.push({
+                    type: 'Frame',
+                    productType: productType,
+                    lenseType: lenseType,
+                    paset: paset,
+                    lensePrice: lensePrice,
+                    total: totalPrice
+                });
 
-                const formattedPaset = formatNumber(paset);
-                const formattedLensePrice = formatNumber(lensePrice);
-                const formattedTotalPrice = formatNumber(totalPrice);
+                alert("Item added to cart!");
+                productTypeField.value = '';
+                lenseTypeField.value = '1';
+                pasetField.value = '';
+                lensePriceField.value = '';
+                totalPriceField.value = '';
+                frameImageField.value = '';
+                toggleFrameConfirmButton();
+                showPage('page-1');
+            });
+            
+            const checkoutConfirmBtn = document.getElementById('checkout-confirm-btn');
+            
+            checkoutConfirmBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    alert("Your cart is empty. Please add items before checking out.");
+                    return;
+                }
                 
-                const message = `Invoice #${invoiceNumber} | Product Type: ${productType} | Lense Type: ${lenseType} | Paset: Rp${formattedPaset} | Lense Price: Rp${formattedLensePrice} | Total Price: Rp${formattedTotalPrice}`;
-                const encodedMessage = encodeURIComponent(message);
+                const invoiceNumber = Math.floor(10000 + Math.random() * 90000);
+                let total = 0;
                 
-                const phoneNumber = '+6287880000981'; 
+                let messageBody = `*-- INVOICE #${invoiceNumber} --*\n\n`;
+                
+                cart.forEach(item => {
+                    if (item.type === 'Sunglasses') {
+                        messageBody += `*Item: Sunglasses*\nSunglass Type: ${item.text}\nTotal: Rp${formatNumber(item.total)}\n\n`;
+                        total += parseFloat(item.total);
+                    } else if (item.type === 'Frame') {
+                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}\nLense Type: ${item.lenseType}\nPaset: Rp${formatNumber(item.paset)}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}\n\n`;
+                        total += parseFloat(item.total);
+                    }
+                });
+                
+                messageBody += `*-- SUMMARY --*\nTotal Payment: Rp${formatNumber(total)}\nPayment Method: ${paymentMethod}`;
+                
+                const encodedMessage = encodeURIComponent(messageBody);
+                const phoneNumber = '+6287880000981';
                 const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+                
                 window.open(whatsappUrl, '_blank');
-
+                
                 setTimeout(() => {
-                    productTypeField.value = '';
-                    lenseTypeField.value = '1'; // Reset dropdown to the first option
-                    pasetField.value = '';
-                    lensePriceField.value = '';
-                    totalPriceField.value = '';
-                    frameImageField.value = '';
-                    toggleFrameConfirmButton();
+                    cart = [];
                     showPage('page-1');
                 }, 500);
             });
