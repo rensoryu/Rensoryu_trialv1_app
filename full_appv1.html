@@ -155,10 +155,20 @@
                     <label for="custom-lense-field" class="block text-sm font-medium text-gray-700 mb-1">Custom Lense Type</label>
                     <input type="text" id="custom-lense-field" placeholder="Enter custom lense type..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
                 </div>
+                
+                <!-- Paset Toggle Button -->
+                <div class="space-y-4">
+                    <label for="paset-toggle" class="block text-sm font-medium text-gray-700">Paset</label>
+                    <div id="paset-toggle" class="toggle-container" onclick="togglePasetMethod()">
+                        <div id="paset-indicator" class="toggle-indicator"></div>
+                        <span id="paset-inhouse-text" class="toggle-text active">In house</span>
+                        <span id="paset-outhouse-text" class="toggle-text">Out house</span>
+                    </div>
+                </div>
 
-                <!-- Paset Field -->
-                <div>
-                    <label for="paset-field" class="block text-sm font-medium text-gray-700 mb-1">Paset</label>
+                <!-- Out house price field (initially hidden) -->
+                <div id="outhouse-price-container" class="hidden">
+                    <label for="paset-field" class="block text-sm font-medium text-gray-700 mb-1">Out house Price</label>
                     <div class="relative rounded-lg shadow-sm">
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <span class="text-gray-500 sm:text-sm">Rp</span>
@@ -252,6 +262,8 @@
     <script>
         let cart = [];
         let paymentMethod = 'Cash'; // Default payment method
+        let editingIndex = -1; // -1 means no item is being edited
+        let pasetMethod = 'In house'; // Default paset method
 
         // This function is now in the global scope
         const formatNumber = (number) => {
@@ -264,6 +276,35 @@
                 useGrouping: true
             }).format(num);
         };
+
+        const toggleFrameConfirmButton = () => {
+            const productTypeField = document.getElementById('product-type-field');
+            const lenseTypeField = document.getElementById('lense-type-field');
+            const pasetField = document.getElementById('paset-field');
+            const totalPriceField = document.getElementById('total-price-field');
+            const customLenseField = document.getElementById('custom-lense-field');
+            const frameConfirmBtn = document.getElementById('frame-confirm-btn');
+
+            const productTypeFilled = productTypeField.value.trim() !== '';
+            const lenseTypeFilled = lenseTypeField.value.trim() !== '';
+            const customLenseFilled = lenseTypeField.value === 'Custom' && customLenseField.value.trim() !== '';
+            const pasetPriceFilled = pasetMethod === 'Out house' && parseFloat(pasetField.value.replace(/\./g, '').replace(',', '.')) >= 0;
+            const totalPriceFilled = parseFloat(totalPriceField.value.replace(/\./g, '').replace(',', '.'));
+
+            if (productTypeFilled && (lenseTypeFilled || customLenseFilled) && !isNaN(totalPriceFilled)) {
+                if (pasetMethod === 'Out house' && isNaN(pasetPriceFilled)) {
+                    frameConfirmBtn.disabled = true;
+                    frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    frameConfirmBtn.disabled = false;
+                    frameConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                frameConfirmBtn.disabled = true;
+                frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        };
+            
 
         function showPage(pageId) {
             const pages = document.querySelectorAll('.page');
@@ -294,6 +335,28 @@
             }
         }
 
+        function togglePasetMethod() {
+            const indicator = document.getElementById('paset-indicator');
+            const inhouseText = document.getElementById('paset-inhouse-text');
+            const outhouseText = document.getElementById('paset-outhouse-text');
+            const outhousePriceContainer = document.getElementById('outhouse-price-container');
+
+            if (pasetMethod === 'In house') {
+                pasetMethod = 'Out house';
+                indicator.classList.add('right');
+                inhouseText.classList.remove('active');
+                outhouseText.classList.add('active');
+                outhousePriceContainer.classList.remove('hidden');
+            } else {
+                pasetMethod = 'In house';
+                indicator.classList.remove('right');
+                inhouseText.classList.add('active');
+                outhouseText.classList.remove('active');
+                outhousePriceContainer.classList.add('hidden');
+            }
+            toggleFrameConfirmButton();
+        }
+
         function showCheckout() {
             const orderSummaryDiv = document.getElementById('order-summary');
             const totalPaymentDisplay = document.getElementById('total-payment-display');
@@ -305,30 +368,103 @@
                 orderSummaryDiv.innerHTML = '<p class="text-center text-gray-500">Your cart is empty.</p>';
                 totalPaymentDisplay.textContent = 'Rp0,000';
             } else {
-                cart.forEach(item => {
+                cart.forEach((item, index) => {
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('bg-gray-50', 'p-4', 'rounded-xl', 'shadow-sm', 'border', 'border-gray-200');
                     let details = '';
+                    let itemTotal = 0;
                     if (item.type === 'Sunglasses') {
                         details = `<p class="font-semibold text-gray-800">${item.text}</p>
                                    <p class="text-gray-600">Total: Rp${formatNumber(item.total)}</p>`;
-                        total += parseFloat(item.total);
+                        itemTotal = parseFloat(item.total);
                     } else if (item.type === 'Frame') {
                         const lenseType = item.lenseType === 'Custom' ? item.customLense : item.lenseType;
+                        const pasetPrice = item.pasetMethod === 'Out house' ? ` | Paset Price: Rp${formatNumber(item.paset)}` : '';
                         details = `<p class="font-semibold text-gray-800">Product Type: ${item.productType}</p>
                                    <p class="text-gray-600">Lense Type: ${lenseType}</p>
-                                   <p class="text-gray-600">Paset: Rp${formatNumber(item.paset)}</p>
+                                   <p class="text-gray-600">Paset: ${item.pasetMethod}${pasetPrice}</p>
                                    <p class="text-gray-600">Lense Price: Rp${formatNumber(item.lensePrice)}</p>
                                    <p class="text-gray-600">Total Price: Rp${formatNumber(item.total)}</p>`;
-                        total += parseFloat(item.total);
+                        itemTotal = parseFloat(item.total);
                     }
+                    total += itemTotal;
+                    
                     itemDiv.innerHTML = details;
+
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.classList.add('mt-2', 'space-x-2');
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.classList.add('px-3', 'py-1', 'bg-blue-500', 'text-white', 'rounded-full', 'hover:bg-blue-600', 'transition-colors');
+                    editBtn.onclick = () => editItem(index);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('px-3', 'py-1', 'bg-red-500', 'text-white', 'rounded-full', 'hover:bg-red-600', 'transition-colors');
+                    deleteBtn.onclick = () => deleteItem(index);
+                    
+                    actionsDiv.appendChild(editBtn);
+                    actionsDiv.appendChild(deleteBtn);
+                    itemDiv.appendChild(actionsDiv);
                     orderSummaryDiv.appendChild(itemDiv);
                 });
                 totalPaymentDisplay.textContent = `Rp${formatNumber(total)}`;
             }
-
             showPage('page-4');
+        }
+
+        function editItem(index) {
+            editingIndex = index;
+            const item = cart[index];
+            if (item.type === 'Sunglasses') {
+                document.getElementById('sunglasses-text-field').value = item.text;
+                document.getElementById('sunglasses-float-field').value = formatNumber(item.total);
+                showPage('page-2');
+            } else if (item.type === 'Frame') {
+                document.getElementById('product-type-field').value = item.productType;
+                document.getElementById('lense-type-field').value = item.lenseType;
+                
+                const customLenseContainer = document.getElementById('custom-lense-container');
+                const customLenseField = document.getElementById('custom-lense-field');
+                if (item.lenseType === 'Custom') {
+                    customLenseContainer.classList.remove('hidden');
+                    customLenseField.value = item.customLense;
+                } else {
+                    customLenseContainer.classList.add('hidden');
+                }
+                
+                const pasetMethodContainer = document.getElementById('paset-toggle');
+                const pasetIndicator = document.getElementById('paset-indicator');
+                const pasetInhouseText = document.getElementById('paset-inhouse-text');
+                const pasetOuthouseText = document.getElementById('paset-outhouse-text');
+                const outhousePriceContainer = document.getElementById('outhouse-price-container');
+                
+                if (item.pasetMethod === 'Out house') {
+                    pasetMethod = 'Out house';
+                    pasetIndicator.classList.add('right');
+                    pasetInhouseText.classList.remove('active');
+                    pasetOuthouseText.classList.add('active');
+                    outhousePriceContainer.classList.remove('hidden');
+                    document.getElementById('paset-field').value = formatNumber(item.paset);
+                } else {
+                    pasetMethod = 'In house';
+                    pasetIndicator.classList.remove('right');
+                    pasetInhouseText.classList.add('active');
+                    pasetOuthouseText.classList.remove('active');
+                    outhousePriceContainer.classList.add('hidden');
+                    document.getElementById('paset-field').value = '';
+                }
+
+                document.getElementById('lense-price-field').value = formatNumber(item.lensePrice);
+                document.getElementById('total-price-field').value = formatNumber(item.total);
+                showPage('page-3');
+            }
+        }
+
+        function deleteItem(index) {
+            cart.splice(index, 1);
+            showCheckout(); // Refresh the checkout page
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -363,13 +499,23 @@
                 const textValue = sunglassesTextField.value;
                 const floatValue = sunglassesFloatField.value.replace(/\./g, '').replace(',', '.');
                 
-                cart.push({
-                    type: 'Sunglasses',
-                    text: textValue,
-                    total: floatValue,
-                });
+                if (editingIndex !== -1) {
+                    cart[editingIndex] = {
+                        type: 'Sunglasses',
+                        text: textValue,
+                        total: floatValue,
+                    };
+                    editingIndex = -1;
+                    alert("Item updated!");
+                } else {
+                    cart.push({
+                        type: 'Sunglasses',
+                        text: textValue,
+                        total: floatValue,
+                    });
+                    alert("Item added to cart!");
+                }
                 
-                alert("Item added to cart!");
                 sunglassesTextField.value = '';
                 sunglassesFloatField.value = '';
                 sunglassesImageField.value = '';
@@ -387,21 +533,7 @@
             const frameConfirmBtn = document.getElementById('frame-confirm-btn');
             const frameImageField = document.getElementById('frame-image-field');
             
-            const toggleFrameConfirmButton = () => {
-                const productTypeFilled = productTypeField.value.trim() !== '';
-                const lenseTypeFilled = lenseTypeField.value.trim() !== '';
-                const customLenseFilled = lenseTypeField.value === 'Custom' && customLenseField.value.trim() !== '';
-                const totalPriceFilled = parseFloat(totalPriceField.value.replace(/\./g, '').replace(',', '.'));
-
-                if (productTypeFilled && (lenseTypeFilled || customLenseFilled) && !isNaN(totalPriceFilled)) {
-                    frameConfirmBtn.disabled = false;
-                    frameConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    frameConfirmBtn.disabled = true;
-                    frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-            };
-
+            
             lenseTypeField.addEventListener('change', () => {
                 if (lenseTypeField.value === 'Custom') {
                     customLenseContainer.classList.remove('hidden');
@@ -437,17 +569,33 @@
                 const lensePrice = lensePriceField.value.replace(/\./g, '').replace(',', '.');
                 const totalPrice = totalPriceField.value.replace(/\./g, '').replace(',', '.');
                 
-                cart.push({
-                    type: 'Frame',
-                    productType: productType,
-                    lenseType: lenseType,
-                    customLense: customLense,
-                    paset: paset,
-                    lensePrice: lensePrice,
-                    total: totalPrice
-                });
+                if (editingIndex !== -1) {
+                    cart[editingIndex] = {
+                        type: 'Frame',
+                        productType: productType,
+                        lenseType: lenseType,
+                        customLense: customLense,
+                        pasetMethod: pasetMethod,
+                        paset: pasetMethod === 'Out house' ? paset : 0,
+                        lensePrice: lensePrice,
+                        total: totalPrice
+                    };
+                    editingIndex = -1;
+                    alert("Item updated!");
+                } else {
+                    cart.push({
+                        type: 'Frame',
+                        productType: productType,
+                        lenseType: lenseType,
+                        customLense: customLense,
+                        pasetMethod: pasetMethod,
+                        paset: pasetMethod === 'Out house' ? paset : 0,
+                        lensePrice: lensePrice,
+                        total: totalPrice
+                    });
+                    alert("Item added to cart!");
+                }
 
-                alert("Item added to cart!");
                 productTypeField.value = '';
                 lenseTypeField.value = '1';
                 pasetField.value = '';
@@ -479,7 +627,8 @@
                         total += parseFloat(item.total);
                     } else if (item.type === 'Frame') {
                         const lenseType = item.lenseType === 'Custom' ? item.customLense : item.lenseType;
-                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}\nLense Type: ${lenseType}\nPaset: Rp${formatNumber(item.paset)}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}\n\n`;
+                        const pasetPrice = item.pasetMethod === 'Out house' ? ` | Paset Price: Rp${formatNumber(item.paset)}` : '';
+                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}\nLense Type: ${lenseType}\nPaset: ${item.pasetMethod}${pasetPrice}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}\n\n`;
                         total += parseFloat(item.total);
                     }
                 });
