@@ -139,14 +139,21 @@
                 <div>
                     <label for="lense-type-field" class="block text-sm font-medium text-gray-700 mb-1">Lense Type</label>
                     <select id="lense-type-field" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
+                        <option value="1">CRMC</option>
+                        <option value="2">Photocrom</option>
+                        <option value="3">Bluecrom</option>
                         <option value="4">4</option>
                         <option value="5">5</option>
                         <option value="6">6</option>
                         <option value="7">7</option>
+                        <option value="Custom">Custom</option>
                     </select>
+                </div>
+
+                <!-- Custom Lense Field (initially hidden) -->
+                <div id="custom-lense-container" class="hidden">
+                    <label for="custom-lense-field" class="block text-sm font-medium text-gray-700 mb-1">Custom Lense Type</label>
+                    <input type="text" id="custom-lense-field" placeholder="Enter custom lense type..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
                 </div>
 
                 <!-- Paset Field -->
@@ -307,8 +314,9 @@
                                    <p class="text-gray-600">Total: Rp${formatNumber(item.total)}</p>`;
                         total += parseFloat(item.total);
                     } else if (item.type === 'Frame') {
+                        const lenseType = item.lenseType === 'Custom' ? item.customLense : item.lenseType;
                         details = `<p class="font-semibold text-gray-800">Product Type: ${item.productType}</p>
-                                   <p class="text-gray-600">Lense Type: ${item.lenseType}</p>
+                                   <p class="text-gray-600">Lense Type: ${lenseType}</p>
                                    <p class="text-gray-600">Paset: Rp${formatNumber(item.paset)}</p>
                                    <p class="text-gray-600">Lense Price: Rp${formatNumber(item.lensePrice)}</p>
                                    <p class="text-gray-600">Total Price: Rp${formatNumber(item.total)}</p>`;
@@ -374,15 +382,18 @@
             const lensePriceField = document.getElementById('lense-price-field');
             const totalPriceField = document.getElementById('total-price-field');
             const lenseTypeField = document.getElementById('lense-type-field');
+            const customLenseContainer = document.getElementById('custom-lense-container');
+            const customLenseField = document.getElementById('custom-lense-field');
             const frameConfirmBtn = document.getElementById('frame-confirm-btn');
             const frameImageField = document.getElementById('frame-image-field');
             
             const toggleFrameConfirmButton = () => {
                 const productTypeFilled = productTypeField.value.trim() !== '';
                 const lenseTypeFilled = lenseTypeField.value.trim() !== '';
+                const customLenseFilled = lenseTypeField.value === 'Custom' && customLenseField.value.trim() !== '';
                 const totalPriceFilled = parseFloat(totalPriceField.value.replace(/\./g, '').replace(',', '.'));
 
-                if (productTypeFilled && lenseTypeFilled && !isNaN(totalPriceFilled)) {
+                if (productTypeFilled && (lenseTypeFilled || customLenseFilled) && !isNaN(totalPriceFilled)) {
                     frameConfirmBtn.disabled = false;
                     frameConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 } else {
@@ -390,6 +401,16 @@
                     frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 }
             };
+
+            lenseTypeField.addEventListener('change', () => {
+                if (lenseTypeField.value === 'Custom') {
+                    customLenseContainer.classList.remove('hidden');
+                } else {
+                    customLenseContainer.classList.add('hidden');
+                }
+                toggleFrameConfirmButton();
+            });
+            customLenseField.addEventListener('input', toggleFrameConfirmButton);
 
             [pasetField, lensePriceField, totalPriceField].forEach(field => {
                 field.addEventListener('input', (e) => {
@@ -411,6 +432,7 @@
             frameConfirmBtn.addEventListener('click', () => {
                 const productType = productTypeField.value;
                 const lenseType = lenseTypeField.value;
+                const customLense = lenseType === 'Custom' ? customLenseField.value : '';
                 const paset = pasetField.value.replace(/\./g, '').replace(',', '.');
                 const lensePrice = lensePriceField.value.replace(/\./g, '').replace(',', '.');
                 const totalPrice = totalPriceField.value.replace(/\./g, '').replace(',', '.');
@@ -419,6 +441,7 @@
                     type: 'Frame',
                     productType: productType,
                     lenseType: lenseType,
+                    customLense: customLense,
                     paset: paset,
                     lensePrice: lensePrice,
                     total: totalPrice
@@ -431,6 +454,8 @@
                 lensePriceField.value = '';
                 totalPriceField.value = '';
                 frameImageField.value = '';
+                customLenseField.value = '';
+                customLenseContainer.classList.add('hidden');
                 toggleFrameConfirmButton();
                 showPage('page-1');
             });
@@ -453,7 +478,8 @@
                         messageBody += `*Item: Sunglasses*\nSunglass Type: ${item.text}\nTotal: Rp${formatNumber(item.total)}\n\n`;
                         total += parseFloat(item.total);
                     } else if (item.type === 'Frame') {
-                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}\nLense Type: ${item.lenseType}\nPaset: Rp${formatNumber(item.paset)}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}\n\n`;
+                        const lenseType = item.lenseType === 'Custom' ? item.customLense : item.lenseType;
+                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}\nLense Type: ${lenseType}\nPaset: Rp${formatNumber(item.paset)}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}\n\n`;
                         total += parseFloat(item.total);
                     }
                 });
