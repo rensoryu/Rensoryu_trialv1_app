@@ -57,6 +57,20 @@
         .toggle-text.active {
             color: white;
         }
+        /* Custom styles for color swatches */
+        .color-swatch {
+            width: 20px; /* Reduced from 28px to 20px */
+            height: 20px; /* Reduced from 28px to 20px */
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent; /* Reduced border size */
+            transition: border 0.15s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .color-swatch.selected {
+            border: 2px solid #ffffff; /* Bright white border on selection */
+            outline: 2px solid #EF4444; /* Red outer ring for visibility */
+            transform: scale(1.2); /* Slightly increased scale for better visibility */
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4">
@@ -87,10 +101,16 @@
             <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Sunglasses</h1>
             
             <form class="space-y-4">
-                <!-- Text Field -->
-                <div>
-                    <label for="text-field" class="block text-sm font-medium text-gray-700 mb-1">Sunglass Type</label>
-                    <input type="text" id="sunglasses-text-field" placeholder="Type here..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
+                <!-- Sunglasses Type and Qty -->
+                <div class="flex space-x-2">
+                    <div class="w-2/3">
+                        <label for="sunglasses-text-field" class="block text-sm font-medium text-gray-700 mb-1">Sunglass Type</label>
+                        <input type="text" id="sunglasses-text-field" placeholder="Type here..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
+                    </div>
+                    <div class="w-1/3">
+                        <label for="sunglasses-qty-field" class="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                        <input type="text" id="sunglasses-qty-field" placeholder="0" inputmode="numeric" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
+                    </div>
                 </div>
 
                 <!-- Float Field with Rp symbol -->
@@ -104,10 +124,14 @@
                     </div>
                 </div>
 
-                <!-- Image Field -->
-                <div>
-                    <label for="image-field" class="block text-sm font-medium text-gray-700 mb-1">Image Upload</label>
-                    <input type="file" id="sunglasses-image-field" accept="image/*" capture="camera" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
+                <!-- Payment Method Toggle -->
+                <div class="space-y-4 mb-8">
+                    <label for="payment-toggle" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                    <div id="sunglasses-payment-toggle" data-payment-method="Cash" class="toggle-container" onclick="togglePaymentMethod(this)">
+                        <div class="toggle-indicator"></div>
+                        <span class="toggle-text active">Cash</span>
+                        <span class="toggle-text">TRF</span>
+                    </div>
                 </div>
             </form>
 
@@ -135,6 +159,19 @@
                     <input type="text" id="product-type-field" placeholder="Type here..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
                 </div>
 
+                <!-- Colour Code Selector -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Colour Code</label>
+                    <input type="hidden" id="frame-color-code" value=""> <!-- Hidden field to store selected color -->
+                    <div id="color-swatch-container" class="flex justify-between p-2 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="color-swatch bg-blue-600" data-color="Blue" onclick="selectColor('Blue', this)"></div>
+                        <div class="color-swatch bg-red-600" data-color="Red" onclick="selectColor('Red', this)"></div>
+                        <div class="color-swatch bg-yellow-400" data-color="Yellow" onclick="selectColor('Yellow', this)"></div>
+                        <div class="color-swatch bg-green-600" data-color="Green" onclick="selectColor('Green', this)"></div>
+                        <div class="color-swatch bg-orange-500" data-color="Orange" onclick="selectColor('Orange', this)"></div>
+                    </div>
+                </div>
+
                 <!-- Lense Type Dropdown -->
                 <div>
                     <label for="lense-type-field" class="block text-sm font-medium text-gray-700 mb-1">Lense Type</label>
@@ -159,7 +196,7 @@
                 <!-- Paset Toggle Button -->
                 <div class="space-y-4">
                     <label for="paset-toggle" class="block text-sm font-medium text-gray-700">Paset</label>
-                    <div id="paset-toggle" class="toggle-container" onclick="togglePasetMethod()">
+                    <div id="paset-toggle" data-paset-method="In house" class="toggle-container" onclick="togglePasetMethod()">
                         <div id="paset-indicator" class="toggle-indicator"></div>
                         <span id="paset-inhouse-text" class="toggle-text active">In house</span>
                         <span id="paset-outhouse-text" class="toggle-text">Out house</span>
@@ -177,6 +214,38 @@
                     </div>
                 </div>
 
+                <!-- PRESCRIPTION GRID -->
+                <div class="space-y-2 pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-medium text-gray-700">Prescription Details</label>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-gray-600">
+                        <div class="col-span-1"></div>
+                        <div>Left Eye</div>
+                        <div>Right Eye</div>
+                    </div>
+                    
+                    <!-- Sphere Row -->
+                    <div class="grid grid-cols-3 gap-2 items-center">
+                        <div class="text-sm font-medium text-gray-700">Sphere</div>
+                        <input type="text" id="sphere-right" placeholder="0.00" inputmode="decimal" class="px-2 py-1 border border-gray-300 rounded-md text-sm text-center">
+                        <input type="text" id="sphere-left" placeholder="0.00" inputmode="decimal" class="px-2 py-1 border border-gray-300 rounded-md text-sm text-center">
+                    </div>
+
+                    <!-- Cylinder Row -->
+                    <div class="grid grid-cols-3 gap-2 items-center">
+                        <div class="text-sm font-medium text-gray-700">Cylinder</div>
+                        <input type="text" id="cylinder-right" placeholder="0.00" inputmode="decimal" class="px-2 py-1 border border-gray-300 rounded-md text-sm text-center">
+                        <input type="text" id="cylinder-left" placeholder="0.00" inputmode="decimal" class="px-2 py-1 border border-gray-300 rounded-md text-sm text-center">
+                    </div>
+
+                    <!-- Add Row -->
+                    <div class="grid grid-cols-3 gap-2 items-center">
+                        <div class="text-sm font-medium text-gray-700">Add</div>
+                        <input type="text" id="add-right" placeholder="0.00" inputmode="decimal" class="px-2 py-1 border border-gray-300 rounded-md text-sm text-center">
+                        <input type="text" id="add-left" placeholder="0.00" inputmode="decimal" class="px-2 py-1 border border-gray-300 rounded-md text-sm text-center">
+                    </div>
+                </div>
+                <!-- END PRESCRIPTION GRID -->
+
                 <!-- Lense Price Field -->
                 <div>
                     <label for="lense-price-field" class="block text-sm font-medium text-gray-700 mb-1">Lense Price</label>
@@ -188,12 +257,6 @@
                     </div>
                 </div>
 
-                <!-- Image Field -->
-                <div>
-                    <label for="frame-image-field" class="block text-sm font-medium text-gray-700 mb-1">Image Upload</label>
-                    <input type="file" id="frame-image-field" accept="image/*" capture="camera" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
-                </div>
-
                 <!-- Total Price Field -->
                 <div>
                     <label for="total-price-field" class="block text-sm font-medium text-gray-700 mb-1">Total Price</label>
@@ -202,6 +265,16 @@
                             <span class="text-gray-500 sm:text-sm">Rp</span>
                         </div>
                         <input type="text" id="total-price-field" placeholder="Enter a number" inputmode="numeric" class="w-full px-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 transition-colors duration-200">
+                    </div>
+                </div>
+
+                 <!-- Payment Method Toggle -->
+                <div class="space-y-4 mb-8">
+                    <label for="payment-toggle" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                    <div id="frame-payment-toggle" data-payment-method="Cash" class="toggle-container" onclick="togglePaymentMethod(this)">
+                        <div class="toggle-indicator"></div>
+                        <span class="toggle-text active">Cash</span>
+                        <span class="toggle-text">TRF</span>
                     </div>
                 </div>
             </form>
@@ -221,27 +294,29 @@
 
         <!-- Page 4: Checkout Page -->
         <div id="page-4" class="page hidden">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Checkout</h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 translate-y-3 text-center">Checkout</h1>
             
             <!-- Order Summary -->
             <div id="order-summary" class="space-y-4 mb-6">
                 <!-- Items will be dynamically added here -->
             </div>
 
-            <!-- Total Payment -->
-            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl shadow-inner mb-6">
-                <span class="font-semibold text-gray-700">Total Payment:</span>
-                <span id="total-payment-display" class="font-bold text-lg text-red-600">Rp0,000</span>
+            <!-- Total Payments Breakdown -->
+            <div class="bg-gray-50 p-4 rounded-xl shadow-inner mb-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold text-gray-700">Total Cash:</span>
+                    <span id="total-cash-display" class="font-bold text-lg text-gray-600">Rp0,000</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Total TRF:</span>
+                    <span id="total-trf-display" class="font-bold text-lg text-gray-600">Rp0,000</span>
+                </div>
             </div>
 
-            <!-- Payment Method Toggle -->
-            <div class="space-y-4 mb-8">
-                <label for="payment-toggle" class="block text-sm font-medium text-gray-700">Payment Method</label>
-                <div id="payment-toggle" class="toggle-container" onclick="togglePaymentMethod()">
-                    <div id="toggle-indicator" class="toggle-indicator"></div>
-                    <span id="cash-text" class="toggle-text active">Cash</span>
-                    <span id="trf-text" class="toggle-text">TRF</span>
-                </div>
+            <!-- Overall Total Payment -->
+            <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl shadow-inner mb-6">
+                <span class="font-semibold text-gray-700">Overall Total Payment:</span>
+                <span id="total-payment-display" class="font-bold text-lg text-red-600">Rp0,000</span>
             </div>
 
             <div class="space-y-4">
@@ -261,10 +336,8 @@
 
     <script>
         let cart = [];
-        let paymentMethod = 'Cash'; // Default payment method
         let editingIndex = -1; // -1 means no item is being edited
-        let pasetMethod = 'In house'; // Default paset method
-
+        
         // This function is now in the global scope
         const formatNumber = (number) => {
             const num = parseFloat(number);
@@ -276,36 +349,7 @@
                 useGrouping: true
             }).format(num);
         };
-
-        const toggleFrameConfirmButton = () => {
-            const productTypeField = document.getElementById('product-type-field');
-            const lenseTypeField = document.getElementById('lense-type-field');
-            const pasetField = document.getElementById('paset-field');
-            const totalPriceField = document.getElementById('total-price-field');
-            const customLenseField = document.getElementById('custom-lense-field');
-            const frameConfirmBtn = document.getElementById('frame-confirm-btn');
-
-            const productTypeFilled = productTypeField.value.trim() !== '';
-            const lenseTypeFilled = lenseTypeField.value.trim() !== '';
-            const customLenseFilled = lenseTypeField.value === 'Custom' && customLenseField.value.trim() !== '';
-            const pasetPriceFilled = pasetMethod === 'Out house' && parseFloat(pasetField.value.replace(/\./g, '').replace(',', '.')) >= 0;
-            const totalPriceFilled = parseFloat(totalPriceField.value.replace(/\./g, '').replace(',', '.'));
-
-            if (productTypeFilled && (lenseTypeFilled || customLenseFilled) && !isNaN(totalPriceFilled)) {
-                if (pasetMethod === 'Out house' && isNaN(pasetPriceFilled)) {
-                    frameConfirmBtn.disabled = true;
-                    frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    frameConfirmBtn.disabled = false;
-                    frameConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            } else {
-                frameConfirmBtn.disabled = true;
-                frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-        };
-            
-
+        
         function showPage(pageId) {
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => {
@@ -317,21 +361,21 @@
             }
         }
         
-        function togglePaymentMethod() {
-            const indicator = document.getElementById('toggle-indicator');
-            const cashText = document.getElementById('cash-text');
-            const trfText = document.getElementById('trf-text');
+        function togglePaymentMethod(element) {
+            const indicator = element.querySelector('.toggle-indicator');
+            const cashText = element.querySelector('.toggle-text:first-of-type');
+            const trfText = element.querySelector('.toggle-text:last-of-type');
             
-            if (paymentMethod === 'Cash') {
-                paymentMethod = 'TRF';
+            if (cashText.classList.contains('active')) {
                 indicator.classList.add('right');
                 cashText.classList.remove('active');
                 trfText.classList.add('active');
+                element.dataset.paymentMethod = 'TRF';
             } else {
-                paymentMethod = 'Cash';
                 indicator.classList.remove('right');
                 cashText.classList.add('active');
                 trfText.classList.remove('active');
+                element.dataset.paymentMethod = 'Cash';
             }
         }
 
@@ -340,15 +384,16 @@
             const inhouseText = document.getElementById('paset-inhouse-text');
             const outhouseText = document.getElementById('paset-outhouse-text');
             const outhousePriceContainer = document.getElementById('outhouse-price-container');
+            const pasetToggle = document.getElementById('paset-toggle');
 
-            if (pasetMethod === 'In house') {
-                pasetMethod = 'Out house';
+            if (pasetToggle.dataset.pasetMethod === 'In house') {
+                pasetToggle.dataset.pasetMethod = 'Out house';
                 indicator.classList.add('right');
                 inhouseText.classList.remove('active');
                 outhouseText.classList.add('active');
                 outhousePriceContainer.classList.remove('hidden');
             } else {
-                pasetMethod = 'In house';
+                pasetToggle.dataset.pasetMethod = 'In house';
                 indicator.classList.remove('right');
                 inhouseText.classList.add('active');
                 outhouseText.classList.remove('active');
@@ -357,16 +402,34 @@
             toggleFrameConfirmButton();
         }
 
+        function selectColor(color, element) {
+            // Remove selection from all swatches
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.classList.remove('selected');
+            });
+            // Add selection to the clicked swatch
+            element.classList.add('selected');
+            // Update the hidden input field
+            document.getElementById('frame-color-code').value = color;
+        }
+
         function showCheckout() {
             const orderSummaryDiv = document.getElementById('order-summary');
             const totalPaymentDisplay = document.getElementById('total-payment-display');
+            const totalCashDisplay = document.getElementById('total-cash-display');
+            const totalTrfDisplay = document.getElementById('total-trf-display');
+
             let total = 0;
+            let totalCash = 0;
+            let totalTrf = 0;
             
             orderSummaryDiv.innerHTML = '';
             
             if (cart.length === 0) {
                 orderSummaryDiv.innerHTML = '<p class="text-center text-gray-500">Your cart is empty.</p>';
                 totalPaymentDisplay.textContent = 'Rp0,000';
+                totalCashDisplay.textContent = 'Rp0,000';
+                totalTrfDisplay.textContent = 'Rp0,000';
             } else {
                 cart.forEach((item, index) => {
                     const itemDiv = document.createElement('div');
@@ -374,20 +437,58 @@
                     let details = '';
                     let itemTotal = 0;
                     if (item.type === 'Sunglasses') {
-                        details = `<p class="font-semibold text-gray-800">${item.text}</p>
-                                   <p class="text-gray-600">Total: Rp${formatNumber(item.total)}</p>`;
+                        details = `<p class="font-semibold text-gray-800">${item.text} x ${item.qty}</p>
+                                   <p class="text-gray-600">Total: Rp${formatNumber(item.total)}</p>
+                                   <p class="text-gray-600">Payment: ${item.paymentMethod}</p>`;
                         itemTotal = parseFloat(item.total);
                     } else if (item.type === 'Frame') {
                         const lenseType = item.lenseType === 'Custom' ? item.customLense : item.lenseType;
                         const pasetPrice = item.pasetMethod === 'Out house' ? ` | Paset Price: Rp${formatNumber(item.paset)}` : '';
-                        details = `<p class="font-semibold text-gray-800">Product Type: ${item.productType}</p>
+                        const colorCode = item.colorCode ? ` | Colour: ${item.colorCode}` : '';
+                        
+                        // Format prescription details for display
+                        let rxDetails = '';
+                        if (item.sphereRight || item.cylinderRight || item.addRight || item.sphereLeft || item.cylinderLeft || item.addLeft) {
+                            rxDetails = `<div class="mt-2 p-2 bg-white rounded-lg border">
+                                <p class="text-sm font-semibold mb-1">Prescription:</p>
+                                <div class="grid grid-cols-3 gap-1 text-xs text-gray-700">
+                                    <span class="font-medium"></span>
+                                    <span class="font-medium text-center">Right</span>
+                                    <span class="font-medium text-center">Left</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1 text-xs">
+                                    <span class="font-medium text-gray-700">SPH:</span>
+                                    <span class="text-center">${item.sphereRight || '—'}</span>
+                                    <span class="text-center">${item.sphereLeft || '—'}</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1 text-xs">
+                                    <span class="font-medium text-gray-700">CYL:</span>
+                                    <span class="text-center">${item.cylinderRight || '—'}</span>
+                                    <span class="text-center">${item.cylinderLeft || '—'}</span>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1 text-xs">
+                                    <span class="font-medium text-gray-700">ADD:</span>
+                                    <span class="text-center">${item.addRight || '—'}</span>
+                                    <span class="text-center">${item.addLeft || '—'}</span>
+                                </div>
+                            </div>`;
+                        }
+
+                        details = `<p class="font-semibold text-gray-800">Product Type: ${item.productType}${colorCode}</p>
                                    <p class="text-gray-600">Lense Type: ${lenseType}</p>
                                    <p class="text-gray-600">Paset: ${item.pasetMethod}${pasetPrice}</p>
                                    <p class="text-gray-600">Lense Price: Rp${formatNumber(item.lensePrice)}</p>
-                                   <p class="text-gray-600">Total Price: Rp${formatNumber(item.total)}</p>`;
+                                   <p class="text-gray-600">Total Price: Rp${formatNumber(item.total)}</p>
+                                   ${rxDetails}
+                                   <p class="text-gray-600 mt-1">Payment: ${item.paymentMethod}</p>`;
                         itemTotal = parseFloat(item.total);
                     }
                     total += itemTotal;
+                    if (item.paymentMethod === 'Cash') {
+                        totalCash += itemTotal;
+                    } else {
+                        totalTrf += itemTotal;
+                    }
                     
                     itemDiv.innerHTML = details;
 
@@ -410,6 +511,8 @@
                     orderSummaryDiv.appendChild(itemDiv);
                 });
                 totalPaymentDisplay.textContent = `Rp${formatNumber(total)}`;
+                totalCashDisplay.textContent = `Rp${formatNumber(totalCash)}`;
+                totalTrfDisplay.textContent = `Rp${formatNumber(totalTrf)}`;
             }
             showPage('page-4');
         }
@@ -419,12 +522,39 @@
             const item = cart[index];
             if (item.type === 'Sunglasses') {
                 document.getElementById('sunglasses-text-field').value = item.text;
+                document.getElementById('sunglasses-qty-field').value = item.qty;
                 document.getElementById('sunglasses-float-field').value = formatNumber(item.total);
+                
+                const toggle = document.getElementById('sunglasses-payment-toggle');
+                // Ensure toggle state matches item
+                if ((toggle.dataset.paymentMethod === 'Cash' && item.paymentMethod === 'TRF') || 
+                    (toggle.dataset.paymentMethod === 'TRF' && item.paymentMethod === 'Cash')) {
+                    togglePaymentMethod(toggle);
+                }
+
                 showPage('page-2');
             } else if (item.type === 'Frame') {
                 document.getElementById('product-type-field').value = item.productType;
                 document.getElementById('lense-type-field').value = item.lenseType;
                 
+                // Color Code Swatch selection
+                const colorCodeField = document.getElementById('frame-color-code');
+                colorCodeField.value = item.colorCode || '';
+                document.querySelectorAll('.color-swatch').forEach(swatch => {
+                    swatch.classList.remove('selected');
+                    if (swatch.dataset.color === item.colorCode) {
+                        swatch.classList.add('selected');
+                    }
+                });
+
+                // Prescription fields
+                document.getElementById('sphere-right').value = item.sphereRight || '';
+                document.getElementById('cylinder-right').value = item.cylinderRight || '';
+                document.getElementById('add-right').value = item.addRight || '';
+                document.getElementById('sphere-left').value = item.sphereLeft || '';
+                document.getElementById('cylinder-left').value = item.cylinderLeft || '';
+                document.getElementById('add-left').value = item.addLeft || '';
+
                 const customLenseContainer = document.getElementById('custom-lense-container');
                 const customLenseField = document.getElementById('custom-lense-field');
                 if (item.lenseType === 'Custom') {
@@ -434,28 +564,29 @@
                     customLenseContainer.classList.add('hidden');
                 }
                 
-                const pasetMethodContainer = document.getElementById('paset-toggle');
-                const pasetIndicator = document.getElementById('paset-indicator');
-                const pasetInhouseText = document.getElementById('paset-inhouse-text');
-                const pasetOuthouseText = document.getElementById('paset-outhouse-text');
-                const outhousePriceContainer = document.getElementById('outhouse-price-container');
+                const pasetToggle = document.getElementById('paset-toggle');
+                // Ensure paset toggle state matches item
+                if ((pasetToggle.dataset.pasetMethod === 'In house' && item.pasetMethod === 'Out house') || 
+                    (pasetToggle.dataset.pasetMethod === 'Out house' && item.pasetMethod === 'In house')) {
+                    togglePasetMethod(); // Toggle once to switch state
+                }
                 
+                const outhousePriceContainer = document.getElementById('outhouse-price-container');
                 if (item.pasetMethod === 'Out house') {
-                    pasetMethod = 'Out house';
-                    pasetIndicator.classList.add('right');
-                    pasetInhouseText.classList.remove('active');
-                    pasetOuthouseText.classList.add('active');
                     outhousePriceContainer.classList.remove('hidden');
                     document.getElementById('paset-field').value = formatNumber(item.paset);
                 } else {
-                    pasetMethod = 'In house';
-                    pasetIndicator.classList.remove('right');
-                    pasetInhouseText.classList.add('active');
-                    pasetOuthouseText.classList.remove('active');
                     outhousePriceContainer.classList.add('hidden');
                     document.getElementById('paset-field').value = '';
                 }
 
+                const paymentToggle = document.getElementById('frame-payment-toggle');
+                // Ensure payment toggle state matches item
+                 if ((paymentToggle.dataset.paymentMethod === 'Cash' && item.paymentMethod === 'TRF') || 
+                    (paymentToggle.dataset.paymentMethod === 'TRF' && item.paymentMethod === 'Cash')) {
+                    togglePaymentMethod(paymentToggle);
+                }
+                
                 document.getElementById('lense-price-field').value = formatNumber(item.lensePrice);
                 document.getElementById('total-price-field').value = formatNumber(item.total);
                 showPage('page-3');
@@ -466,24 +597,67 @@
             cart.splice(index, 1);
             showCheckout(); // Refresh the checkout page
         }
+        
+        const toggleFrameConfirmButton = () => {
+            const productTypeField = document.getElementById('product-type-field');
+            const lenseTypeField = document.getElementById('lense-type-field');
+            const pasetField = document.getElementById('paset-field');
+            const totalPriceField = document.getElementById('total-price-field');
+            const customLenseField = document.getElementById('custom-lense-field');
+            const frameConfirmBtn = document.getElementById('frame-confirm-btn');
+            const pasetToggle = document.getElementById('paset-toggle');
+
+            const productTypeFilled = productTypeField.value.trim() !== '';
+            const lenseTypeFilled = lenseTypeField.value.trim() !== '';
+            const customLenseFilled = lenseTypeField.value === 'Custom' && customLenseField.value.trim() !== '';
+            const pasetPriceFilled = pasetToggle.dataset.pasetMethod === 'Out house' && parseFloat(pasetField.value.replace(/\./g, '').replace(',', '.')) >= 0;
+            const totalPriceFilled = parseFloat(totalPriceField.value.replace(/\./g, '').replace(',', '.'));
+
+            if (productTypeFilled && (lenseTypeFilled || customLenseFilled) && !isNaN(totalPriceFilled)) {
+                if (pasetToggle.dataset.pasetMethod === 'Out house' && isNaN(pasetPriceFilled)) {
+                    frameConfirmBtn.disabled = true;
+                    frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    frameConfirmBtn.disabled = false;
+                    frameConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                frameConfirmBtn.disabled = true;
+                frameConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        };
+        
+        const toggleSunglassesConfirmButton = () => {
+            const sunglassesTextField = document.getElementById('sunglasses-text-field');
+            const sunglassesQtyField = document.getElementById('sunglasses-qty-field');
+            const sunglassesFloatField = document.getElementById('sunglasses-float-field');
+            const sunglassesConfirmBtn = document.getElementById('sunglasses-confirm-btn');
+
+            const floatValue = parseFloat(sunglassesFloatField.value.replace(/\./g, '').replace(',', '.'));
+            const qtyValue = parseFloat(sunglassesQtyField.value);
+
+            if (sunglassesTextField.value.trim() !== '' && !isNaN(floatValue) && !isNaN(qtyValue) && qtyValue > 0) {
+                sunglassesConfirmBtn.disabled = false;
+                sunglassesConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                sunglassesConfirmBtn.disabled = true;
+                sunglassesConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             const sunglassesTextField = document.getElementById('sunglasses-text-field');
+            const sunglassesQtyField = document.getElementById('sunglasses-qty-field');
             const sunglassesFloatField = document.getElementById('sunglasses-float-field');
             const sunglassesConfirmBtn = document.getElementById('sunglasses-confirm-btn');
-            const sunglassesImageField = document.getElementById('sunglasses-image-field');
+
+            // Initialize data-payment-method attributes
+            document.getElementById('sunglasses-payment-toggle').dataset.paymentMethod = 'Cash';
+            document.getElementById('frame-payment-toggle').dataset.paymentMethod = 'Cash';
+            document.getElementById('paset-toggle').dataset.pasetMethod = 'In house';
             
-            const toggleSunglassesConfirmButton = () => {
-                const floatValue = parseFloat(sunglassesFloatField.value.replace(/\./g, '').replace(',', '.'));
-                if (sunglassesTextField.value.trim() !== '' && !isNaN(floatValue)) {
-                    sunglassesConfirmBtn.disabled = false;
-                    sunglassesConfirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    sunglassesConfirmBtn.disabled = true;
-                    sunglassesConfirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-            };
             sunglassesTextField.addEventListener('input', toggleSunglassesConfirmButton);
+            sunglassesQtyField.addEventListener('input', toggleSunglassesConfirmButton);
             sunglassesFloatField.addEventListener('input', (e) => {
                 let value = e.target.value.replace(/[^0-9,.]/g, '');
                 e.target.value = value;
@@ -497,28 +671,30 @@
             });
             sunglassesConfirmBtn.addEventListener('click', () => {
                 const textValue = sunglassesTextField.value;
+                const qtyValue = sunglassesQtyField.value;
                 const floatValue = sunglassesFloatField.value.replace(/\./g, '').replace(',', '.');
+                const paymentMethod = document.getElementById('sunglasses-payment-toggle').dataset.paymentMethod || 'Cash';
                 
+                const newItem = {
+                    type: 'Sunglasses',
+                    text: textValue,
+                    qty: qtyValue,
+                    total: floatValue,
+                    paymentMethod: paymentMethod,
+                };
+
                 if (editingIndex !== -1) {
-                    cart[editingIndex] = {
-                        type: 'Sunglasses',
-                        text: textValue,
-                        total: floatValue,
-                    };
+                    cart[editingIndex] = newItem;
                     editingIndex = -1;
                     alert("Item updated!");
                 } else {
-                    cart.push({
-                        type: 'Sunglasses',
-                        text: textValue,
-                        total: floatValue,
-                    });
+                    cart.push(newItem);
                     alert("Item added to cart!");
                 }
                 
                 sunglassesTextField.value = '';
+                sunglassesQtyField.value = '';
                 sunglassesFloatField.value = '';
-                sunglassesImageField.value = '';
                 toggleSunglassesConfirmButton();
                 showPage('page-1');
             });
@@ -531,9 +707,18 @@
             const customLenseContainer = document.getElementById('custom-lense-container');
             const customLenseField = document.getElementById('custom-lense-field');
             const frameConfirmBtn = document.getElementById('frame-confirm-btn');
-            const frameImageField = document.getElementById('frame-image-field');
+            const pasetToggle = document.getElementById('paset-toggle');
             
-            
+            // Prescription Fields
+            const sphereRight = document.getElementById('sphere-right');
+            const cylinderRight = document.getElementById('cylinder-right');
+            const addRight = document.getElementById('add-right');
+            const sphereLeft = document.getElementById('sphere-left');
+            const cylinderLeft = document.getElementById('cylinder-left');
+            const addLeft = document.getElementById('add-left');
+            const frameColorCode = document.getElementById('frame-color-code');
+
+
             lenseTypeField.addEventListener('change', () => {
                 if (lenseTypeField.value === 'Custom') {
                     customLenseContainer.classList.remove('hidden');
@@ -557,53 +742,69 @@
                     }
                 });
             });
-
+            
+            // Listeners for enabling the confirm button
             productTypeField.addEventListener('input', toggleFrameConfirmButton);
             lenseTypeField.addEventListener('change', toggleFrameConfirmButton); 
+            totalPriceField.addEventListener('input', toggleFrameConfirmButton);
 
             frameConfirmBtn.addEventListener('click', () => {
                 const productType = productTypeField.value;
+                const colorCode = frameColorCode.value; // Get selected color
                 const lenseType = lenseTypeField.value;
                 const customLense = lenseType === 'Custom' ? customLenseField.value : '';
                 const paset = pasetField.value.replace(/\./g, '').replace(',', '.');
                 const lensePrice = lensePriceField.value.replace(/\./g, '').replace(',', '.');
                 const totalPrice = totalPriceField.value.replace(/\./g, '').replace(',', '.');
+                const paymentMethod = document.getElementById('frame-payment-toggle').dataset.paymentMethod || 'Cash';
+                const pasetMethod = document.getElementById('paset-toggle').dataset.pasetMethod || 'In house';
                 
+                const newItem = {
+                    type: 'Frame',
+                    productType: productType,
+                    colorCode: colorCode, // Save color code
+                    lenseType: lenseType,
+                    customLense: customLense,
+                    pasetMethod: pasetMethod,
+                    paset: pasetMethod === 'Out house' ? paset : 0,
+                    lensePrice: lensePrice,
+                    total: totalPrice,
+                    paymentMethod: paymentMethod,
+                    // Save Prescription Data
+                    sphereRight: sphereRight.value.trim(),
+                    cylinderRight: cylinderRight.value.trim(),
+                    addRight: addRight.value.trim(),
+                    sphereLeft: sphereLeft.value.trim(),
+                    cylinderLeft: cylinderLeft.value.trim(),
+                    addLeft: addLeft.value.trim(),
+                };
+
                 if (editingIndex !== -1) {
-                    cart[editingIndex] = {
-                        type: 'Frame',
-                        productType: productType,
-                        lenseType: lenseType,
-                        customLense: customLense,
-                        pasetMethod: pasetMethod,
-                        paset: pasetMethod === 'Out house' ? paset : 0,
-                        lensePrice: lensePrice,
-                        total: totalPrice
-                    };
+                    cart[editingIndex] = newItem;
                     editingIndex = -1;
                     alert("Item updated!");
                 } else {
-                    cart.push({
-                        type: 'Frame',
-                        productType: productType,
-                        lenseType: lenseType,
-                        customLense: customLense,
-                        pasetMethod: pasetMethod,
-                        paset: pasetMethod === 'Out house' ? paset : 0,
-                        lensePrice: lensePrice,
-                        total: totalPrice
-                    });
+                    cart.push(newItem);
                     alert("Item added to cart!");
                 }
 
+                // Clear all fields after adding to cart
                 productTypeField.value = '';
+                frameColorCode.value = '';
+                document.querySelectorAll('.color-swatch').forEach(swatch => swatch.classList.remove('selected'));
                 lenseTypeField.value = '1';
                 pasetField.value = '';
                 lensePriceField.value = '';
                 totalPriceField.value = '';
-                frameImageField.value = '';
                 customLenseField.value = '';
                 customLenseContainer.classList.add('hidden');
+                document.getElementById('paset-toggle').dataset.pasetMethod = 'In house'; // Reset paset toggle state
+                document.getElementById('outhouse-price-container').classList.add('hidden'); // Hide outhouse price
+                
+                // Clear Prescription fields
+                sphereRight.value = ''; cylinderRight.value = ''; addRight.value = '';
+                sphereLeft.value = ''; cylinderLeft.value = ''; addLeft.value = '';
+
                 toggleFrameConfirmButton();
                 showPage('page-1');
             });
@@ -623,17 +824,27 @@
                 
                 cart.forEach(item => {
                     if (item.type === 'Sunglasses') {
-                        messageBody += `*Item: Sunglasses*\nSunglass Type: ${item.text}\nTotal: Rp${formatNumber(item.total)}\n\n`;
+                        messageBody += `*Item: Sunglasses*\nSunglass Type: ${item.text} x ${item.qty}\nTotal: Rp${formatNumber(item.total)}\nPayment: ${item.paymentMethod}\n\n`;
                         total += parseFloat(item.total);
                     } else if (item.type === 'Frame') {
+                        const colorCode = item.colorCode ? ` | Colour: ${item.colorCode}` : '';
                         const lenseType = item.lenseType === 'Custom' ? item.customLense : item.lenseType;
                         const pasetPrice = item.pasetMethod === 'Out house' ? ` | Paset Price: Rp${formatNumber(item.paset)}` : '';
-                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}\nLense Type: ${lenseType}\nPaset: ${item.pasetMethod}${pasetPrice}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}\n\n`;
+                        
+                        let rxMessage = '';
+                        if (item.sphereRight || item.cylinderRight || item.addRight || item.sphereLeft || item.cylinderLeft || item.addLeft) {
+                             rxMessage = `\nRx: SPH R ${item.sphereRight || '—'} CYL R ${item.cylinderRight || '—'} ADD R ${item.addRight || '—'} | SPH L ${item.sphereLeft || '—'} CYL L ${item.cylinderLeft || '—'} ADD L ${item.addLeft || '—'}`;
+                        }
+
+                        messageBody += `*Item: Frame*\nProduct Type: ${item.productType}${colorCode}\nLense Type: ${lenseType}\nPaset: ${item.pasetMethod}${pasetPrice}\nLense Price: Rp${formatNumber(item.lensePrice)}\nTotal Price: Rp${formatNumber(item.total)}${rxMessage}\nPayment: ${item.paymentMethod}\n\n`;
                         total += parseFloat(item.total);
                     }
                 });
                 
-                messageBody += `*-- SUMMARY --*\nTotal Payment: Rp${formatNumber(total)}\nPayment Method: ${paymentMethod}`;
+                let totalCash = cart.filter(item => item.paymentMethod === 'Cash').reduce((sum, item) => sum + parseFloat(item.total), 0);
+                let totalTrf = cart.filter(item => item.paymentMethod === 'TRF').reduce((sum, item) => sum + parseFloat(item.total), 0);
+                
+                messageBody += `*-- SUMMARY --*\nTotal Cash: Rp${formatNumber(totalCash)}\nTotal TRF: Rp${formatNumber(totalTrf)}\nOverall Total Payment: Rp${formatNumber(total)}`;
                 
                 const encodedMessage = encodeURIComponent(messageBody);
                 const phoneNumber = '+6287880000981';
